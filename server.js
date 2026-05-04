@@ -24,9 +24,28 @@ function runMigrations() {
 
 runMigrations()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    // Ensure admin user exists (idempotent)
+    try {
+      const { Usuario } = require('./models');
+      const bcrypt = require('bcryptjs');
+
+      (async () => {
+        const email = process.env.ADMIN_EMAIL || 'admin@gmail.com';
+        const plain = process.env.ADMIN_PASSWORD || '12345678';
+        const hash = await bcrypt.hash(plain, 10);
+        await Usuario.findOrCreate({
+          where: { email },
+          defaults: { nombre: 'Admin', password: hash, rol: 'admin' }
+        });
+
+        app.listen(PORT, () => {
+          console.log(`Server running on port ${PORT}`);
+        });
+      })();
+    } catch (e) {
+      console.error('Error ensuring admin user:', e);
+      process.exit(1);
+    }
   })
   .catch((err) => {
     console.error('Failed to run migrations, exiting.');

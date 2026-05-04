@@ -33,7 +33,7 @@ exports.login = async (req, res) => {
     if (!user) return res.status(401).json({ message: 'Credenciales inválidas' });
 
     const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(401).json({ message: 'Credenciales inválidas' });
+    if (!ok) return res.status(401).json({ message: 'Contraseña incorrecta' });
 
     const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: '12h' });
     return res.json({ user: { id: user.id, nombre: user.nombre, email: user.email }, token });

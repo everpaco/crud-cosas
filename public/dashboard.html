@@ -67,6 +67,7 @@
     </div>
   </div>
 
+  <script src="/config.js"></script>
   <script>
     const token = localStorage.getItem('token');
     const authHeaders = token ? { 'Authorization': 'Bearer ' + token, 'Content-Type':'application/json' } : { 'Content-Type':'application/json' };

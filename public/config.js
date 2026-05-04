@@ -1,3 +1,3 @@
 // Configuración de la URL base de la API para el frontend.
-// Reemplaza el valor por la URL pública de tu backend en Render antes de desplegar.
-window.__API_URL__ = 'https://tu-backend.onrender.com';
+// Apunta a la URL pública de tu backend en Render.
+window.__API_URL__ = 'https://crud-cosas-g3eo.onrender.com';

@@ -12,6 +12,13 @@
     button{padding:10px 14px;border:0;background:#0066ff;color:#fff;border-radius:4px;cursor:pointer}
     header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .table-wrapper{overflow-x:auto}
+    table{min-width:600px}
+    @media (max-width:600px){
+      .row{grid-template-columns:1fr}
+      table{min-width:480px}
+      button{padding:8px 10px}
+    }
     pre{background:#111;color:#bada55;padding:12px;border-radius:6px;overflow:auto}
     table th, table td{padding:8px 10px;border-bottom:1px solid #f0f0f0;text-align:left}
     table thead th{background:#fafafa}
@@ -51,19 +58,23 @@
     <div class="card">
       <h3>Categorías existentes</h3>
       <div id="catsLoading">Cargando...</div>
-      <table id="catsTable" border="0" style="width:100%;display:none;border-collapse:collapse">
-        <thead><tr><th style="text-align:left">Nombre</th><th>Descripción</th><th></th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <div class="table-wrapper">
+        <table id="catsTable" border="0" style="width:100%;display:none;border-collapse:collapse">
+          <thead><tr><th style="text-align:left">Nombre</th><th>Descripción</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="card">
       <h3>Muebles existentes</h3>
       <div id="mueblesLoading">Cargando...</div>
-      <table id="mueblesTable" border="0" style="width:100%;display:none;border-collapse:collapse">
-        <thead><tr><th>Nombre</th><th>Tipo</th><th>Costo</th><th>Categoría</th><th></th></tr></thead>
-        <tbody></tbody>
-      </table>
+      <div class="table-wrapper">
+        <table id="mueblesTable" border="0" style="width:100%;display:none;border-collapse:collapse">
+          <thead><tr><th>Nombre</th><th>Tipo</th><th>Costo</th><th>Categoría</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 

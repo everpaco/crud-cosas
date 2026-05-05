@@ -1,62 +1,752 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Login - CRUD</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cosas App</title>
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;background:#f5f5f5}
-    .card{background:#fff;padding:24px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.06);width:320px}
-    input{width:100%;padding:8px;margin:8px 0;border:1px solid #ddd;border-radius:4px}
-    button{width:100%;padding:10px;border:0;background:#0066ff;color:#fff;border-radius:4px;cursor:pointer}
-    pre{background:#111;color:#bada55;padding:12px;border-radius:6px;overflow:auto}
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f5f5;
+      --surface: #ffffff;
+      --border: #e0e0e0;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --accent: #111827;
+      --accent-hover: #374151;
+      --danger: #ef4444;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    nav .brand { font-weight: 600; font-size: 16px; letter-spacing: -.3px; }
+    nav .nav-actions { display: flex; gap: 8px; align-items: center; }
+    #user-info { font-size: 13px; color: var(--muted); }
+
+    /* ── PAGES ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── AUTH ── */
+    #auth-page {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 56px);
+      padding: 24px;
+    }
+    #auth-page.active { display: flex; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px;
+      width: 100%;
+      max-width: 380px;
+    }
+    .card h2 { font-size: 18px; font-weight: 600; margin-bottom: 24px; }
+
+    /* ── FORMS ── */
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--muted); }
+    input, select {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 14px;
+      color: var(--text);
+      background: var(--surface);
+      transition: border-color .15s;
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background .15s, opacity .15s;
+    }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--bg); }
+    .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); font-size: 13px; padding: 6px 12px; }
+    .btn-danger:hover { background: #fef2f2; }
+    .btn-full { width: 100%; }
+
+    .toggle-link {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .toggle-link a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+
+    /* ── ALERT ── */
+    .alert {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .alert.show { display: block; }
+    .alert-error { background: #fef2f2; color: var(--danger); border: 1px solid #fecaca; }
+    .alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+
+    /* ── MUEBLES PAGE ── */
+    #muebles-page { padding: 32px 24px; max-width: 880px; margin: 0 auto; }
+    #muebles-page.active { display: block; }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .page-header h1 { font-size: 20px; font-weight: 600; }
+
+    /* ── MODAL ── */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 24px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 30px rgba(0,0,0,.12);
+      padding: 28px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .modal-header h3 { font-size: 16px; font-weight: 600; }
+    .modal-close {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--muted);
+      line-height: 1;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--muted);
+      padding: 12px 16px;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 13px 16px; font-size: 14px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 9px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 500;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .empty-state p { margin-top: 8px; }
+
+    .loader {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 14px;
+      gap: 8px;
+    }
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h3>Iniciar sesión</h3>
-    <form id="loginForm">
-      <label>Email</label>
-      <input id="email" type="email" placeholder="*****@gmail.com" required />
-        <label>Contraseña</label>
-        <input id="password" type="password" placeholder="****" required />
-        <div id="loginError" class="error" role="alert" aria-live="polite" style="display:none"></div>
-        <button type="submit">Login</button>
-    </form>
 
-      <!-- botón de prueba y área de respuesta eliminados -->
+<!-- ── NAV ── -->
+<nav>
+  <span class="brand">Cosas App</span>
+  <div class="nav-actions">
+    <button class="btn btn-ghost" onclick="goTo('muebles')">Muebles</button>
+    <button class="btn btn-ghost" onclick="goTo('clientes')">Clientes</button>
+    <button class="btn btn-ghost" onclick="goTo('ventas')">Ventas</button>
+    <span id="user-info"></span>
+    <button class="btn btn-ghost" id="btn-logout" style="display:none" onclick="logout()">Salir</button>
+  </div>
+</nav>
+
+<!-- ══════════════════ AUTH PAGE ══════════════════ -->
+<div id="auth-page" class="page active">
+  <div class="card">
+    <!-- LOGIN -->
+    <div id="form-login">
+      <h2>Iniciar sesión</h2>
+      <div class="alert alert-error" id="login-error"></div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="correo@ejemplo.com" />
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-password" placeholder="••••••" />
+      </div>
+      <button class="btn btn-primary btn-full" id="btn-login" onclick="doLogin()">Entrar</button>
+      <p class="toggle-link">¿No tienes cuenta? <a onclick="switchForm('register')">Regístrate</a></p>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="form-register" style="display:none">
+      <h2>Crear cuenta</h2>
+      <div class="alert alert-error" id="register-error"></div>
+      <div class="alert alert-success" id="register-success"></div>
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="reg-nombre" placeholder="Tu nombre" />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="correo@ejemplo.com" />
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="reg-password" placeholder="••••••" />
+      </div>
+      <button class="btn btn-primary btn-full" id="btn-register" onclick="doRegister()">Registrarse</button>
+      <p class="toggle-link">¿Ya tienes cuenta? <a onclick="switchForm('login')">Inicia sesión</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MUEBLES PAGE ══════════════════ -->
+<div id="muebles-page" class="page">
+  <div class="page-header">
+    <h1>Muebles</h1>
+    <button class="btn btn-primary" onclick="openModal()">+ Nuevo mueble</button>
   </div>
 
-  <script src="/config.js"></script>
-  <script>
-    const loginError = document.getElementById('loginError');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
+  <div id="muebles-list"></div>
+</div>
 
-    function showError(msg){
-      loginError.textContent = msg || '';
-      loginError.style.display = msg ? 'block' : 'none';
+<!-- ══════════════════ CLIENTES PAGE ══════════════════ -->
+<div id="clientes-page" class="page" style="padding:32px 24px; max-width:880px; margin:0 auto; display:none">
+  <div class="page-header">
+    <h1>Clientes</h1>
+    <button class="btn btn-primary" onclick="openClienteModal()">+ Nuevo cliente</button>
+  </div>
+  <div id="clientes-list"></div>
+</div>
+
+<!-- ══════════════════ VENTAS PAGE ══════════════════ -->
+<div id="ventas-page" class="page" style="padding:32px 24px; max-width:880px; margin:0 auto; display:none">
+  <div class="page-header">
+    <h1>Ventas</h1>
+    <button class="btn btn-primary" onclick="openVentaModal()">+ Nueva venta</button>
+  </div>
+  <div id="ventas-list"></div>
+</div>
+
+<!-- ── MODAL NUEVO MUEBLE ── -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nuevo mueble</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="alert alert-error" id="mueble-error"></div>
+    <div class="form-group">
+      <label>Nombre</label>
+      <input type="text" id="mueble-nombre" placeholder="Ej. Sofá de sala" />
+    </div>
+    <div class="form-group">
+      <label>Tipo</label>
+      <select id="mueble-tipo">
+        <option value="">Selecciona un tipo</option>
+        <option value="cocina">Cocina</option>
+        <option value="sala">Sala</option>
+        <option value="dormitorio">Dormitorio</option>
+        <option value="oficina">Oficina</option>
+        <option value="baño">Baño</option>
+        <option value="exterior">Exterior</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Costo (Bs.)</label>
+      <input type="number" id="mueble-costo" placeholder="0" min="0" />
+    </div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-crear" onclick="crearMueble()">Crear</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVO CLIENTE -->
+<div class="modal-backdrop" id="modal-cliente-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nuevo cliente</h3>
+      <button class="modal-close" onclick="closeClienteModal()">×</button>
+    </div>
+    <div class="alert alert-error" id="cliente-error"></div>
+    <div class="form-group"><label>Nombre</label><input type="text" id="cliente-nombre" /></div>
+    <div class="form-group"><label>Email</label><input type="email" id="cliente-email" /></div>
+    <div class="form-group"><label>Teléfono</label><input type="text" id="cliente-telefono" /></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+      <button class="btn btn-ghost" onclick="closeClienteModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-crear-cliente" onclick="crearCliente()">Crear</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVA VENTA -->
+<div class="modal-backdrop" id="modal-venta-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Nueva venta</h3>
+      <button class="modal-close" onclick="closeVentaModal()">×</button>
+    </div>
+    <div class="alert alert-error" id="venta-error"></div>
+    <div class="form-group"><label>Total</label><input type="number" id="venta-total" step="0.01" /></div>
+    <div class="form-group"><label>Descripción</label><input type="text" id="venta-descripcion" /></div>
+    <div class="form-group"><label>Cliente</label><select id="venta-clienteId"><option value="">Sin cliente</option></select></div>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:8px;">
+      <button class="btn btn-ghost" onclick="closeVentaModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-crear-venta" onclick="crearVenta()">Crear</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const API = window.location.origin;
+
+  /* ─── helpers ─── */
+  const $ = id => document.getElementById(id);
+  const getToken = () => localStorage.getItem('token');
+  const getEmail = () => localStorage.getItem('email');
+
+  function showAlert(id, msg) {
+    const el = $(id);
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+  function clearAlert(id) { const el = $(id); el.textContent = ''; el.classList.remove('show'); }
+
+  function setLoading(btnId, loading) {
+    const btn = $(btnId);
+    btn.disabled = loading;
+    if (loading) {
+      btn._orig = btn.textContent;
+      btn.innerHTML = '<span class="spinner"></span>';
+    } else {
+      btn.innerHTML = btn._orig || btn.innerHTML;
     }
+  }
 
-    // Clear error when user types
-    emailInput.addEventListener('input', ()=> showError(''));
-    passwordInput.addEventListener('input', ()=> showError(''));
+  /* ─── routing ─── */
+  function goTo(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    $(page + '-page').classList.add('active');
+  }
 
-    document.getElementById('loginForm').addEventListener('submit', async e => {
-      e.preventDefault();
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-      showError('');
-      try{
-          const apiBase = window.__API_URL__ || '';
-          const res = await fetch(apiBase + '/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
-        const data = await res.json();
-        if(!res.ok){ console.error(data); showError(data.message || 'Error al iniciar sesión'); return; }
-        // guardar token y redirigir al dashboard
-        localStorage.setItem('token', data.token);
-        window.location.href = '/dashboard.html';
-      }catch(err){ console.error(err); showError('Error de conexión'); }
-    });
-  </script>
+  // Llamadas al cargar páginas
+  const pageLoaders = {
+    muebles: cargarMuebles,
+    clientes: cargarClientes,
+    ventas: cargarVentas
+  };
+
+  function goTo(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    $(page + '-page').classList.add('active');
+    const loader = pageLoaders[page];
+    if (typeof loader === 'function') loader();
+  }
+
+  function switchForm(which) {
+    $('form-login').style.display = which === 'login' ? '' : 'none';
+    $('form-register').style.display = which === 'register' ? '' : 'none';
+    clearAlert('login-error');
+    clearAlert('register-error');
+    clearAlert('register-success');
+  }
+
+  /* ─── auth ─── */
+  async function doLogin() {
+    clearAlert('login-error');
+    const email = $('login-email').value.trim();
+    const password = $('login-password').value;
+    if (!email || !password) return showAlert('login-error', 'Completa todos los campos.');
+    setLoading('btn-login', true);
+    try {
+      const res = await fetch(API + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.error || 'Credenciales incorrectas.');
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('email', email);
+      initApp();
+    } catch (e) {
+      showAlert('login-error', e.message);
+    } finally {
+      setLoading('btn-login', false);
+    }
+  }
+
+  async function doRegister() {
+    clearAlert('register-error');
+    clearAlert('register-success');
+    const nombre = $('reg-nombre').value.trim();
+    const email = $('reg-email').value.trim();
+    const password = $('reg-password').value;
+    if (!nombre || !email || !password) return showAlert('register-error', 'Completa todos los campos.');
+    setLoading('btn-register', true);
+    try {
+      const res = await fetch(API + '/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.error || 'Error al registrarse.');
+      showAlert('register-success', '¡Cuenta creada! Ahora inicia sesión.');
+      $('reg-nombre').value = '';
+      $('reg-email').value = '';
+      $('reg-password').value = '';
+      setTimeout(() => switchForm('login'), 1500);
+    } catch (e) {
+      showAlert('register-error', e.message);
+    } finally {
+      setLoading('btn-register', false);
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('email');
+    $('user-info').textContent = '';
+    $('btn-logout').style.display = 'none';
+    switchForm('login');
+    goTo('auth');
+  }
+
+  /* ─── muebles ─── */
+  async function cargarMuebles() {
+    const list = $('muebles-list');
+    list.innerHTML = '<div class="loader"><span class="spinner"></span> Cargando...</div>';
+    try {
+      const res = await fetch(API + '/muebles', {
+        headers: { 'Authorization': 'Bearer ' + getToken() }
+      });
+      if (res.status === 401) { logout(); return; }
+      const data = await res.json();
+      renderTabla(Array.isArray(data) ? data : (data.data || data.muebles || []));
+    } catch {
+      list.innerHTML = '<div class="empty-state">⚠ No se pudo cargar la lista.</div>';
+    }
+  }
+
+  function renderTabla(items) {
+    const list = $('muebles-list');
+    if (!items.length) {
+      list.innerHTML = '<div class="table-wrap"><div class="empty-state"><strong>Sin muebles</strong><p>Crea el primero con el botón de arriba.</p></div></div>';
+      return;
+    }
+    const rows = items.map(m => `
+      <tr>
+        <td>${escHtml(m.nombre || '—')}</td>
+        <td><span class="badge">${escHtml(m.tipo || '—')}</span></td>
+        <td>Bs. ${Number(m.costo || 0).toLocaleString('es-BO')}</td>
+        <td style="color:var(--muted);font-size:12px">${m._id || m.id || ''}</td>
+      </tr>`).join('');
+    list.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Tipo</th>
+              <th>Costo</th>
+              <th>ID</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  async function crearMueble() {
+    clearAlert('mueble-error');
+    const nombre = $('mueble-nombre').value.trim();
+    const tipo = $('mueble-tipo').value;
+    const costo = $('mueble-costo').value;
+    if (!nombre || !tipo || !costo) return showAlert('mueble-error', 'Completa todos los campos.');
+    setLoading('btn-crear', true);
+    try {
+      const res = await fetch(API + '/muebles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + getToken()
+        },
+        body: JSON.stringify({ nombre, tipo, costo })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.error || 'Error al crear.');
+      closeModal();
+      cargarMuebles();
+    } catch (e) {
+      showAlert('mueble-error', e.message);
+    } finally {
+      setLoading('btn-crear', false);
+    }
+  }
+
+  /* ─── modal ─── */
+  function openModal() {
+    clearAlert('mueble-error');
+    $('mueble-nombre').value = '';
+    $('mueble-tipo').value = '';
+    $('mueble-costo').value = '';
+    $('modal-backdrop').classList.add('open');
+    setTimeout(() => $('mueble-nombre').focus(), 50);
+  }
+  function closeModal() { $('modal-backdrop').classList.remove('open'); }
+  $('modal-backdrop').addEventListener('click', e => { if (e.target === $('modal-backdrop')) closeModal(); });
+
+  // Clientes
+  async function cargarClientes() {
+    const list = $('clientes-list');
+    list.innerHTML = '<div class="loader"><span class="spinner"></span> Cargando...</div>';
+    try {
+      const res = await fetch(API + '/clientes', { headers: { 'Authorization': 'Bearer ' + getToken() } });
+      if (res.status === 401) { logout(); return; }
+      const data = await res.json();
+      renderClientes(Array.isArray(data) ? data : (data.data || []));
+    } catch {
+      list.innerHTML = '<div class="empty-state">⚠ No se pudo cargar la lista de clientes.</div>';
+    }
+  }
+
+  function renderClientes(items) {
+    const list = $('clientes-list');
+    if (!items.length) {
+      list.innerHTML = '<div class="table-wrap"><div class="empty-state"><strong>Sin clientes</strong><p>Crea el primero con el botón de arriba.</p></div></div>';
+      return;
+    }
+    const rows = items.map(c => `
+      <tr>
+        <td>${escHtml(c.nombre||'—')}</td>
+        <td>${escHtml(c.email||'—')}</td>
+        <td>${escHtml(c.telefono||'—')}</td>
+        <td style="color:var(--muted);font-size:12px">${c.id||''}</td>
+      </tr>`).join('');
+    list.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>ID</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function openClienteModal() { clearAlert('cliente-error'); $('cliente-nombre').value=''; $('cliente-email').value=''; $('cliente-telefono').value=''; $('modal-cliente-backdrop').classList.add('open'); }
+  function closeClienteModal() { $('modal-cliente-backdrop').classList.remove('open'); }
+  $('modal-cliente-backdrop').addEventListener('click', e => { if (e.target === $('modal-cliente-backdrop')) closeClienteModal(); });
+
+  async function crearCliente() {
+    clearAlert('cliente-error');
+    const nombre = $('cliente-nombre').value.trim();
+    const email = $('cliente-email').value.trim();
+    const telefono = $('cliente-telefono').value.trim();
+    if (!nombre || !email) return showAlert('cliente-error','Completa nombre y email.');
+    setLoading('btn-crear-cliente', true);
+    try {
+      const res = await fetch(API + '/clientes', { method:'POST', headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+getToken() }, body: JSON.stringify({ nombre,email,telefono }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message||'Error al crear cliente');
+      closeClienteModal();
+      cargarClientes();
+    } catch (e) { showAlert('cliente-error', e.message); } finally { setLoading('btn-crear-cliente', false); }
+  }
+
+  // Ventas
+  async function cargarVentas() {
+    const list = $('ventas-list');
+    list.innerHTML = '<div class="loader"><span class="spinner"></span> Cargando...</div>';
+    try {
+      const res = await fetch(API + '/ventas', { headers: { 'Authorization': 'Bearer ' + getToken() } });
+      if (res.status === 401) { logout(); return; }
+      const data = await res.json();
+      renderVentas(Array.isArray(data) ? data : (data.data || []));
+    } catch {
+      list.innerHTML = '<div class="empty-state">⚠ No se pudo cargar la lista de ventas.</div>';
+    }
+  }
+
+  function renderVentas(items) {
+    const list = $('ventas-list');
+    if (!items.length) {
+      list.innerHTML = '<div class="table-wrap"><div class="empty-state"><strong>Sin ventas</strong><p>Crea la primera con el botón de arriba.</p></div></div>';
+      return;
+    }
+    const rows = items.map(v => `
+      <tr>
+        <td>${escHtml(v.descripcion||'—')}</td>
+        <td>Bs. ${Number(v.total||0).toLocaleString('es-BO')}</td>
+        <td>${escHtml((v.cliente && v.cliente.nombre) || (v.clienteId||''))}</td>
+        <td style="color:var(--muted);font-size:12px">${v.id||''}</td>
+      </tr>`).join('');
+    list.innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Descripción</th><th>Total</th><th>Cliente</th><th>ID</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function openVentaModal() {
+    clearAlert('venta-error');
+    $('venta-total').value='';
+    $('venta-descripcion').value='';
+    // poblar select de clientes
+    fetch(API + '/clientes', { headers: { 'Authorization': 'Bearer ' + getToken() } })
+      .then(r => r.json())
+      .then(data => {
+        const sel = $('venta-clienteId');
+        sel.innerHTML = '<option value="">Sin cliente</option>' + (Array.isArray(data) ? data.map(c => `<option value="${c.id}">${escHtml(c.nombre)}</option>`).join('') : '');
+      }).catch(()=>{});
+    $('modal-venta-backdrop').classList.add('open');
+  }
+  function closeVentaModal() { $('modal-venta-backdrop').classList.remove('open'); }
+  $('modal-venta-backdrop').addEventListener('click', e => { if (e.target === $('modal-venta-backdrop')) closeVentaModal(); });
+
+  async function crearVenta() {
+    clearAlert('venta-error');
+    const total = $('venta-total').value;
+    const descripcion = $('venta-descripcion').value.trim();
+    const clienteId = $('venta-clienteId').value || null;
+    if (total === '' || isNaN(Number(total))) return showAlert('venta-error','Total inválido');
+    setLoading('btn-crear-venta', true);
+    try {
+      const res = await fetch(API + '/ventas', { method:'POST', headers:{ 'Content-Type':'application/json','Authorization':'Bearer '+getToken() }, body: JSON.stringify({ total, descripcion, clienteId }) });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message||'Error al crear venta');
+      closeVentaModal();
+      cargarVentas();
+    } catch (e) { showAlert('venta-error', e.message); } finally { setLoading('btn-crear-venta', false); }
+  }
+
+  /* ─── Enter key support ─── */
+  ['login-email','login-password'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); }));
+  ['reg-nombre','reg-email','reg-password'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doRegister(); }));
+  ['mueble-nombre','mueble-tipo','mueble-costo'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') crearMueble(); }));
+
+  /* ─── init ─── */
+  function initApp() {
+    const token = getToken();
+    if (token) {
+      $('user-info').textContent = getEmail();
+      $('btn-logout').style.display = '';
+      goTo('muebles');
+      cargarMuebles();
+    } else {
+      goTo('auth');
+    }
+  }
+
+  initApp();
+</script>
 </body>
 </html>
